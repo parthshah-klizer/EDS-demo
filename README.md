@@ -1,9 +1,9 @@
-# Your Project's Title...
-Your project's description...
+# Personal AEM Boilerplate
+Personal Edge Delivery Services + Document Authoring (da.live) sandbox.
 
 ## Environments
-- Preview: https://main--{repo}--{owner}.aem.page/
-- Live: https://main--{repo}--{owner}.aem.live/
+- Preview: https://main--aem-boilerplate--parthshah-klizer.aem.page/
+- Live: https://main--aem-boilerplate--parthshah-klizer.aem.live/
 
 ## Documentation
 
