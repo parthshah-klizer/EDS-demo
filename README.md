@@ -1,9 +1,9 @@
-# Personal AEM Boilerplate
+# EDS-demo
 Personal Edge Delivery Services + Document Authoring (da.live) sandbox.
 
 ## Environments
-- Preview: https://main--aem-boilerplate--parthshah-klizer.aem.page/
-- Live: https://main--aem-boilerplate--parthshah-klizer.aem.live/
+- Preview: https://main--EDS-demo--parthshah-klizer.aem.page/
+- Live: https://main--EDS-demo--parthshah-klizer.aem.live/
 
 ## Documentation
 
