@@ -28,7 +28,6 @@ function sampleRUM(checkpoint, data) {
         on: 1,
         off: 0,
         high: 10,
-        medium: 100,
         low: 1000,
       }[rate];
       const weight = rateValue !== undefined ? rateValue : 100;
@@ -157,21 +156,31 @@ function sampleRUM(checkpoint, data) {
 /**
  * Setup block utils.
  */
-function setup(importUrl = import.meta.url) {
+function setup() {
   window.hlx = window.hlx || {};
   window.hlx.RUM_MASK_URL = 'full';
   window.hlx.RUM_MANUAL_ENHANCE = true;
+  window.hlx.codeBasePath = '';
   window.hlx.lighthouse = new URLSearchParams(window.location.search).get('lighthouse') === 'on';
 
-  [window.hlx.codeBasePath] = new URL(importUrl).pathname.split('/scripts/');
+  const scriptEl = document.querySelector('script[src$="/scripts/scripts.js"]');
+  if (scriptEl) {
+    try {
+      [window.hlx.codeBasePath] = new URL(scriptEl.src).pathname.split('/scripts/scripts.js');
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log(error);
+    }
+  }
 }
 
 /**
  * Auto initialization.
  */
+
 function init() {
   setup();
-  sampleRUM.collectBaseURL = new URL(`${window.hlx.codeBasePath}/`, window.origin);
+  sampleRUM.collectBaseURL = window.origin;
   sampleRUM();
 }
 
@@ -384,7 +393,6 @@ function wrapTextNodes(block) {
     'OL',
     'PICTURE',
     'TABLE',
-    'BLOCKQUOTE',
     'H1',
     'H2',
     'H3',
@@ -573,12 +581,7 @@ function decorateBlocks(main) {
  */
 async function loadHeader(header) {
   const headerBlock = buildBlock('header', '');
-  const existingHeaderBlock = header.querySelector(':scope > .header');
-  if (existingHeaderBlock) {
-    existingHeaderBlock.replaceWith(headerBlock);
-  } else {
-    header.append(headerBlock);
-  }
+  header.append(headerBlock);
   decorateBlock(headerBlock);
   return loadBlock(headerBlock);
 }
@@ -590,12 +593,7 @@ async function loadHeader(header) {
  */
 async function loadFooter(footer) {
   const footerBlock = buildBlock('footer', '');
-  const existingFooterBlock = footer.querySelector(':scope > .footer');
-  if (existingFooterBlock) {
-    existingFooterBlock.replaceWith(footerBlock);
-  } else {
-    footer.append(footerBlock);
-  }
+  footer.append(footerBlock);
   decorateBlock(footerBlock);
   return loadBlock(footerBlock);
 }

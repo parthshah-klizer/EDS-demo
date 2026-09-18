@@ -1,14 +1,4 @@
 #!/usr/bin/env node
-/**
- * Upload default DA pages to admin.da.live
- *
- * Usage:
- *   IMS_TOKEN='eyJ...' node tools/da-seed/upload.mjs
- *   IMS_TOKEN='eyJ...' ORG=parthshah-klizer SITE=mps-demo node tools/da-seed/upload.mjs
- *
- * Get IMS_TOKEN while logged into da.live:
- *   DevTools → Network → any admin.da.live request → Authorization: Bearer …
- */
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join, relative, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -17,70 +7,70 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ORG = process.env.ORG || 'parthshah-klizer';
 const SITE = process.env.SITE || 'mps-demo';
 const TOKEN = process.env.IMS_TOKEN || process.env.DA_TOKEN;
+const ROOT = process.env.SEED_DIR || __dirname;
 
 if (!TOKEN) {
-  console.error('Missing IMS_TOKEN. Open https://da.live/#/parthshah-klizer/mps-demo/');
-  console.error('DevTools → Network → admin.da.live → copy Bearer token');
-  console.error("Then: IMS_TOKEN='…' node tools/da-seed/upload.mjs");
+  console.error('Missing IMS_TOKEN');
+  console.error('1) Open https://da.live/#/parthshah-klizer/mps-demo/ and sign in');
+  console.error('2) DevTools → Network → admin.da.live → copy Bearer token');
+  console.error("3) IMS_TOKEN='…' node tools/da-seed/upload.mjs");
   process.exit(1);
 }
 
-const ROOT = __dirname;
-const FILES = [
-  'index.html',
-  'nav.html',
-  'footer.html',
-  '404.html',
-  'drafts/demo.html',
-  'placeholders.json',
-  'metadata.json',
-];
-
-async function ensureFolder(path) {
-  const url = `https://admin.da.live/source/${ORG}/${SITE}/${path}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${TOKEN}` },
-  });
-  console.log(`folder ${path || '(root)'} → ${res.status}`);
-  return res.status;
+function walk(dir, base = dir) {
+  const out = [];
+  for (const name of readdirSync(dir)) {
+    if (name === 'upload.mjs' || name === 'README.md') continue;
+    const abs = join(dir, name);
+    const st = statSync(abs);
+    if (st.isDirectory()) out.push(...walk(abs, base));
+    else if (name.endsWith('.html') || name.endsWith('.json')) out.push(relative(base, abs));
+  }
+  return out;
 }
 
-async function uploadFile(relPath) {
-  const abs = join(ROOT, relPath);
+async function ensureFolders(relPath) {
+  const parts = relPath.split('/');
+  let cur = '';
+  for (let i = 0; i < parts.length - 1; i++) {
+    cur = cur ? `${cur}/${parts[i]}` : parts[i];
+    await fetch(`https://admin.da.live/source/${ORG}/${SITE}/${cur}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    });
+  }
+}
+
+async function upload(rel) {
+  await ensureFolders(rel);
+  const buf = readFileSync(join(ROOT, rel));
+  const type = rel.endsWith('.json') ? 'application/json' : 'text/html';
   const body = new FormData();
-  const buf = readFileSync(abs);
-  const type = relPath.endsWith('.json') ? 'application/json' : 'text/html';
-  body.append('data', new Blob([buf], { type }), relPath.split('/').pop());
-  const url = `https://admin.da.live/source/${ORG}/${SITE}/${relPath}`;
-  const res = await fetch(url, {
+  body.append('data', new Blob([buf], { type }), rel.split('/').pop());
+  const res = await fetch(`https://admin.da.live/source/${ORG}/${SITE}/${rel}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${TOKEN}` },
     body,
   });
-  const text = await res.text();
-  console.log(`file ${relPath} → ${res.status} ${text.slice(0, 180)}`);
-  if (!res.ok) throw new Error(`Upload failed for ${relPath}`);
+  console.log(`${rel} → ${res.status}`);
+  if (!res.ok) throw new Error(`Upload failed: ${rel} (${res.status})`);
 }
 
-async function main() {
-  // probe auth
-  const probe = await fetch(`https://admin.da.live/list/${ORG}/${SITE}/`, {
-    headers: { Authorization: `Bearer ${TOKEN}` },
-  });
-  console.log(`list ${ORG}/${SITE} → ${probe.status}`);
-  if (probe.status === 401 || probe.status === 403) {
-    throw new Error('IMS token rejected. Copy a fresh Bearer token from da.live Network tab.');
-  }
-
-  await ensureFolder('drafts');
-  for (const f of FILES) {
-    await uploadFile(f);
-  }
-  console.log('\nDone. Open https://da.live/#/' + ORG + '/' + SITE + '/');
-}
-
-main().catch((e) => {
-  console.error(e.message || e);
-  process.exit(1);
+const probe = await fetch(`https://admin.da.live/list/${ORG}/${SITE}/`, {
+  headers: { Authorization: `Bearer ${TOKEN}` },
 });
+console.log(`auth list → ${probe.status}`);
+if (probe.status === 401 || probe.status === 403) throw new Error('Token rejected — copy a fresh Bearer from da.live');
+
+const files = walk(ROOT).sort();
+console.log(`Uploading ${files.length} files to ${ORG}/${SITE}...`);
+for (const f of files) await upload(f);
+
+// preview key pages
+const pages = ['/', '/cart', '/checkout', '/search', '/products/default', '/customer/login', '/wishlist'];
+for (const p of pages) {
+  const url = `https://admin.hlx.page/preview/${ORG}/${SITE}/main${p === '/' ? '' : p}`;
+  const res = await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${TOKEN}` } });
+  console.log(`preview ${p} → ${res.status}`);
+}
+console.log(`Done → https://da.live/#/${ORG}/${SITE}/`);
