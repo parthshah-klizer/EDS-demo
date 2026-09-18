@@ -1,45 +1,38 @@
-# EDS-demo
-Personal Edge Delivery Services + Document Authoring (da.live) sandbox.
+# mps-demo
+Personal Edge Delivery Services + Document Authoring (da.live) sandbox for MPS.
 
 ## Environments
-- Document Authoring: https://da.live/#/parthshah-klizer/EDS-demo/
-- Preview: https://main--EDS-demo--parthshah-klizer.aem.page/
-- Live: https://main--EDS-demo--parthshah-klizer.aem.live/
+- Document Authoring: https://da.live/#/parthshah-klizer/mps-demo/
+- Preview: https://main--mps-demo--parthshah-klizer.aem.page/
+- Live: https://main--mps-demo--parthshah-klizer.aem.live/
 
 ## Default content pages (da.live)
-- [Browse all](https://da.live/#/parthshah-klizer/EDS-demo/)
-- [Index](https://da.live/edit#/parthshah-klizer/EDS-demo/index)
-- [Nav](https://da.live/edit#/parthshah-klizer/EDS-demo/nav)
-- [Footer](https://da.live/edit#/parthshah-klizer/EDS-demo/footer)
-- [404](https://da.live/edit#/parthshah-klizer/EDS-demo/404)
-- [Placeholders](https://da.live/#/parthshah-klizer/EDS-demo/placeholders)
+- [Browse all](https://da.live/#/parthshah-klizer/mps-demo/)
+- [Index](https://da.live/edit#/parthshah-klizer/mps-demo/index)
+- [Nav](https://da.live/edit#/parthshah-klizer/mps-demo/nav)
+- [Footer](https://da.live/edit#/parthshah-klizer/mps-demo/footer)
+- [404](https://da.live/edit#/parthshah-klizer/mps-demo/404)
+- [Demo draft](https://da.live/edit#/parthshah-klizer/mps-demo/drafts/demo)
 
-## Documentation
+## Seed pages into da.live
+If the site is empty, upload starter pages:
 
-Before using the aem-boilerplate, we recommand you to go through the documentation on https://www.aem.live/docs/ and more specifically:
-1. [Developer Tutorial](https://www.aem.live/developer/tutorial)
-2. [The Anatomy of a Project](https://www.aem.live/developer/anatomy-of-a-project)
-3. [Web Performance](https://www.aem.live/developer/keeping-it-100)
-4. [Markup, Sections, Blocks, and Auto Blocking](https://www.aem.live/developer/markup-sections-blocks)
-5. [Document Authoring](https://docs.da.live/)
-
-## Installation
+1. Open https://da.live/#/parthshah-klizer/mps-demo/ and sign in
+2. DevTools → Network → click any `admin.da.live` request → copy `Authorization: Bearer …`
+3. Run:
 
 ```sh
-npm i
+IMS_TOKEN='paste-token-here' node tools/da-seed/upload.mjs
 ```
 
-## Linting
-
-```sh
-npm run lint
-```
+## Setup checklist
+1. Install [AEM Code Sync](https://github.com/apps/aem-code-sync) on this repo
+2. Confirm site at [da.live/start](https://da.live/start) with `https://github.com/parthshah-klizer/mps-demo`
+3. Seed pages (command above) or use “Make something wonderful” sample content
 
 ## Local development
 
-1. Create a new repository based on the `aem-boilerplate` template
-1. Add the [AEM Code Sync GitHub App](https://github.com/apps/aem-code-sync) to the repository
-1. Connect content at [https://da.live/start](https://da.live/start) with `https://github.com/parthshah-klizer/EDS-demo`
-1. Install the [AEM CLI](https://github.com/adobe/helix-cli): `npm install -g @adobe/aem-cli`
-1. Start AEM Proxy: `aem up` (opens your browser at `http://localhost:3000`)
-1. Open the `EDS-demo` directory in your favorite IDE and start coding :)
+```sh
+npm i
+npx @adobe/aem-cli up
+```

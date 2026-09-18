@@ -1,0 +1,10 @@
+{
+  "total": 2,
+  "offset": 0,
+  "limit": 2,
+  "data": [
+    { "key": "site-title", "value": "MPS Demo" },
+    { "key": "copyright", "value": "© MPS Demo" }
+  ],
+  ":type": "sheet"
+}
