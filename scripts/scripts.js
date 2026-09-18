@@ -224,10 +224,43 @@ function loadDelayed() {
   // load anything that can be postponed to the latest here
 }
 
+async function loadSidekick() {
+  if (document.querySelector('aem-sidekick')) {
+    import('./sidekick.js');
+    return;
+  }
+
+  document.addEventListener('sidekick-ready', () => {
+    import('./sidekick.js');
+  });
+}
+
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
   loadDelayed();
+  loadSidekick();
+}
+
+/** DA / UE origins used by sidekick plugins */
+export const NX_ORIGIN = 'https://da.live/nx';
+
+// UE Editor support before page load
+if (/\.(stage-ue|ue)\.da\.live$/.test(window.location.hostname)) {
+  // eslint-disable-next-line import/no-unresolved
+  await import(`${window.hlx.codeBasePath}/ue/scripts/ue.js`).then(({ default: ue }) => ue());
 }
 
 loadPage();
+
+(function da() {
+  const { searchParams } = new URL(window.location.href);
+
+  const lp = searchParams.get('dapreview');
+  // eslint-disable-next-line import/no-unresolved
+  if (lp) import('https://da.live/scripts/dapreview.js').then((mod) => mod.default(loadPage));
+
+  const exp = searchParams.get('daexperiment');
+  // eslint-disable-next-line import/no-unresolved
+  if (exp) import(`${NX_ORIGIN}/public/plugins/exp/exp.js`);
+}());
